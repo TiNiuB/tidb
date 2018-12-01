@@ -40,14 +40,22 @@ func TableFromMeta(alloc autoid.Allocator, meta *model.TableInfo) (table.Table, 
 		columns = append(columns, col)
 	}
 
+	api := map[string]string{
+		"pd_config":      "http://127.0.0.1:8080/pd_config",
+		"pd_region_peer": "http://127.0.0.1:8080/pd_region_peer",
+		"pd_region":      "http://127.0.0.1:8080/pd_region",
+		"pd_store_label": "http://127.0.0.1:8080/pd_store_label",
+		"pd_store":       "http://127.0.0.1:8080/pd_store",
+	}
+
 	var t table.Table
-	switch meta.Name.L {
-	case "pd_config":
-		tmp := &pdTable{}
+	if url, ok := api[meta.Name.L]; ok {
+		tmp := &jsonTable{
+			url: url,
+		}
 		tmp.init(meta, columns)
 		t = tmp
-		fmt.Println("!!!!!!!!!!!!! 创建 pd table")
-	default:
+	} else {
 		tmp := &tiniubTable{
 			meta: meta,
 			cols: columns,

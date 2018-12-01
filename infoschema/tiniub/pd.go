@@ -14,10 +14,7 @@ import (
 
 type jsonTable struct {
 	tiniubTable
-}
-
-type pdTable struct {
-	jsonTable
+	url string
 }
 
 // IterRecords implements table.Table Type interface.
@@ -46,7 +43,7 @@ func (vt *jsonTable) IterRecords(ctx sessionctx.Context, startKey kv.Key, cols [
 }
 
 func (vt *jsonTable) getRows(ctx sessionctx.Context, cols []*table.Column) (fullRows [][]types.Datum, err error) {
-	resp, err := http.Get("http://127.0.0.1:8080/pd_config")
+	resp, err := http.Get(vt.url)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
