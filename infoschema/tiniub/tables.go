@@ -46,6 +46,9 @@ func TableFromMeta(alloc autoid.Allocator, meta *model.TableInfo) (table.Table, 
 		"pd_region":      "http://127.0.0.1:8080/pd_region",
 		"pd_store_label": "http://127.0.0.1:8080/pd_store_label",
 		"pd_store":       "http://127.0.0.1:8080/pd_store",
+		"service":        "http://127.0.0.1:8080/service",
+		"cpu":            "http://127.0.0.1:8080/psutil_cpu",
+		"memory":         "http://127.0.0.1:8080/psutil_memory",
 	}
 
 	osQuery := make(map[string]string)

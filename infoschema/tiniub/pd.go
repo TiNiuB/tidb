@@ -1,8 +1,10 @@
 package tiniub
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/pingcap/errors"
@@ -26,6 +28,7 @@ func (vt *jsonTable) IterRecords(ctx sessionctx.Context, startKey kv.Key, cols [
 	}
 
 	fmt.Println("运行到了 pd config ...!!")
+
 	rows, err := vt.getRows(ctx, cols)
 	if err != nil {
 		return errors.Trace(err)
@@ -50,10 +53,14 @@ func (vt *jsonTable) getRows(ctx sessionctx.Context, cols []*table.Column) (full
 	}
 	defer resp.Body.Close()
 
+	var buf bytes.Buffer
+	tee := io.TeeReader(resp.Body, &buf)
+
 	var fromRows []map[string]interface{}
-	dec := json.NewDecoder(resp.Body)
+	dec := json.NewDecoder(tee)
 	err = dec.Decode(&fromRows)
 	if err != nil {
+		fmt.Println("日了狗了...", buf.String())
 		return nil, errors.Trace(err)
 	}
 
