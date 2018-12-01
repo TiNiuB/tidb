@@ -19,6 +19,7 @@ import (
 
 	"github.com/pingcap/errors"
 	"github.com/pingcap/parser/model"
+	"github.com/pingcap/tidb/infoschema/tiniub"
 	"github.com/pingcap/tidb/meta"
 	"github.com/pingcap/tidb/meta/autoid"
 	"github.com/pingcap/tidb/perfschema"
@@ -269,6 +270,12 @@ func (b *Builder) InitWithDBInfos(dbInfos []*model.DBInfo, schemaVersion int64) 
 }
 
 func (b *Builder) createSchemaTablesForDB(di *model.DBInfo) error {
+	if di.Name.L == "tiniub" {
+		return b.createVirtualDB(di)
+	}
+
+	fmt.Println("create schema table for db, schema = ", di.Name.L)
+
 	schTbls := &schemaTables{
 		dbInfo: di,
 		tables: make(map[string]table.Table, len(di.Tables)),
@@ -279,6 +286,28 @@ func (b *Builder) createSchemaTablesForDB(di *model.DBInfo) error {
 		alloc := autoid.NewAllocator(b.handle.store, t.GetDBID(schemaID))
 		var tbl table.Table
 		tbl, err := tables.TableFromMeta(alloc, t)
+		if err != nil {
+			return errors.Trace(err)
+		}
+		schTbls.tables[t.Name.L] = tbl
+		sortedTbls := b.is.sortedTablesBuckets[tableBucketIdx(t.ID)]
+		b.is.sortedTablesBuckets[tableBucketIdx(t.ID)] = append(sortedTbls, tbl)
+	}
+	return nil
+}
+
+func (b *Builder) createVirtualDB(di *model.DBInfo) error {
+	fmt.Println("运行到 createVirtualDB")
+	schTbls := &schemaTables{
+		dbInfo: di,
+		tables: make(map[string]table.Table, len(di.Tables)),
+	}
+	b.is.schemaMap[di.Name.L] = schTbls
+	for _, t := range di.Tables {
+		schemaID := di.ID
+		alloc := autoid.NewAllocator(b.handle.store, t.GetDBID(schemaID))
+		var tbl table.Table
+		tbl, err := tiniub.TableFromMeta(alloc, t)
 		if err != nil {
 			return errors.Trace(err)
 		}

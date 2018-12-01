@@ -22,6 +22,7 @@ import (
 	"github.com/pingcap/parser/terror"
 	"github.com/pingcap/tidb/infoschema"
 	"github.com/pingcap/tidb/sessionctx"
+	tt "github.com/pingcap/tidb/table"
 	"github.com/pingcap/tidb/types"
 	"github.com/pingcap/tidb/util/chunk"
 	"github.com/pingcap/tidb/util/sqlexec"
@@ -32,12 +33,19 @@ import (
 func (h *Handle) initStatsMeta4Chunk(is infoschema.InfoSchema, tables statsCache, iter *chunk.Iterator4Chunk) {
 	for row := iter.Begin(); row != iter.End(); row = iter.Next() {
 		physicalID := row.GetInt64(1)
+		fmt.Println("physical id = ", physicalID)
 		table, ok := h.getTableByPhysicalID(is, physicalID)
 		if !ok {
 			log.Debugf("Unknown physical ID %d in stats meta table, maybe it has been dropped", physicalID)
 			continue
 		}
+		if table.Type() != tt.NormalTable {
+			continue
+		}
 		tableInfo := table.Meta()
+
+		fmt.Println("-------initStatsMeta4Chunk --", tableInfo.Name.L)
+
 		newHistColl := HistColl{
 			PhysicalID:     physicalID,
 			HavePhysicalID: true,

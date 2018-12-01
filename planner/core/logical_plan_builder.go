@@ -1837,6 +1837,10 @@ func (b *PlanBuilder) buildDataSource(tn *ast.TableName) (LogicalPlan, error) {
 		dbName = model.NewCIStr(b.ctx.GetSessionVars().CurrentDB)
 	}
 
+	if dbName.L == "tiniub" {
+		fmt.Println("build data source for TiNiuB")
+	}
+
 	tbl, err := b.is.TableByName(dbName, tn.Name)
 	if err != nil {
 		return nil, errors.Trace(err)
