@@ -65,16 +65,16 @@ func (vt *jsonTable) getRows(ctx sessionctx.Context, cols []*table.Column) (full
 }
 
 func (vt *jsonTable) decodeOneRow(sc *stmtctx.StatementContext, from map[string]interface{}, toRows [][]types.Datum, cols []*table.Column) [][]types.Datum {
-	fmt.Println(" ============================= decode one row")
 	colInfos := vt.meta.Columns
-	to := make([]types.Datum, len(colInfos))
-	for i := 0; i < len(colInfos); i++ {
+	fmt.Println(" ============================= decode one row", len(cols), len(colInfos))
+	to := make([]types.Datum, len(cols))
+	for i := 0; i < len(cols); i++ {
 
-		if cols[i].Name.L != colInfos[i].Name.L {
-			fmt.Printf("第 %d 列出， %s %s executor 的跟实际的不一致？\n", i, cols[i].Name.L, colInfos[i].Name.L)
-		}
+		// if cols[i].Name.L != colInfos[i].Name.L {
+		// 	fmt.Printf("第 %d 列出， %s %s executor 的跟实际的不一致？\n", i, cols[i].Name.L, colInfos[i].Name.L)
+		// }
 
-		key := colInfos[i].Name.L
+		key := cols[i].Name.L
 		if val, ok := from[key]; ok {
 			to[i] = types.NewDatum(val)
 			// fmt.Printf("填充列，key  = %s , value = %s \n", key, val)
