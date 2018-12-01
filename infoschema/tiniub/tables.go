@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/pingcap/parser/model"
+	"github.com/pingcap/tidb/config"
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/meta/autoid"
 	"github.com/pingcap/tidb/sessionctx"
@@ -40,21 +41,23 @@ func TableFromMeta(alloc autoid.Allocator, meta *model.TableInfo) (table.Table, 
 		columns = append(columns, col)
 	}
 
+	addr := config.GetGlobalConfig().TiNiuB
+
 	pdAPI := map[string]string{
-		"pd_config":      "http://127.0.0.1:8080/pd_config",
-		"pd_region_peer": "http://127.0.0.1:8080/pd_region_peer",
-		"pd_region":      "http://127.0.0.1:8080/pd_region",
-		"pd_store_label": "http://127.0.0.1:8080/pd_store_label",
-		"pd_store":       "http://127.0.0.1:8080/pd_store",
-		"service":        "http://127.0.0.1:8080/service",
-		"cpu":            "http://127.0.0.1:8080/psutil_cpu",
-		"memory":         "http://127.0.0.1:8080/psutil_memory",
+		"pd_config":      addr + "/pd_config",
+		"pd_region_peer": addr + "/pd_region_peer",
+		"pd_region":      addr + "/pd_region",
+		"pd_store_label": addr + "/pd_store_label",
+		"pd_store":       addr + "/pd_store",
+		"service":        addr + "/service",
+		"cpu":            addr + "/psutil_cpu",
+		"memory":         addr + "/psutil_memory",
 	}
 
 	osQuery := make(map[string]string)
 	strs := []string{"acpi_tables", "apt_sources", "arp_cache", "augeas", "authorized_keys", "block_devices", "carbon_black_info", "carves", "chrome_extensions", "cpu_time", "cpuid", "crontab", "curl", "curl_certificate", "deb_packages", "device_file", "device_hash", "device_partitions", "disk_encryption", "dns_resolvers", "elf_dynamic", "elf_info", "elf_sections", "elf_segments", "elf_symbols", "etc_hosts", "etc_protocols", "etc_services", "file_events", "firefox_addons", "groups", "hardware_events", "hash", "intel_me_info", "interface_addresses", "interface_details", "iptables", "kernel_info", "kernel_integrity", "kernel_modules", "known_hosts", "last", "listening_ports", "lldp_neighbors", "load_average", "logged_in_users", "magic", "md_devices", "md_drives", "md_personalities", "memory_array_mapped_addresses", "memory_arrays", "memory_device_mapped_addresses", "memory_devices", "memory_error_info", "memory_info", "memory_map", "mounts", "msr", "npm_packages", "opera_extensions", "os_version", "osquery_events", "osquery_extensions", "osquery_flags", "osquery_info", "osquery_packs", "osquery_registry", "osquery_schedule", "pci_devices", "pd_config", "pd_region", "pd_region_peer", "pd_store", "pd_store_label", "platform_info", "portage_keywords", "portage_packages", "portage_use", "process_envs", "process_events", "process_file_events", "process_memory_map", "process_namespaces", "process_open_files", "process_open_sockets", "processes", "prometheus_metrics", "python_packages", "routes", "selinux_events", "shadow", "shared_memory", "shell_history", "smart_drive_info", "smbios_tables", "socket_events", "ssh_configs", "sudoers", "suid_bin", "syslog_events", "system_controls", "system_info", "time", "ulimit_info", "uptime", "usb_devices", "user_events", "user_groups", "user_ssh_keys", "users", "yara", "yara_events", "yum_sources"}
 	for _, str := range strs {
-		osQuery[str] = "http://127.0.0.1:8080/osquery_" + str
+		osQuery[str] = addr + "/osquery_" + str
 	}
 
 	var t table.Table

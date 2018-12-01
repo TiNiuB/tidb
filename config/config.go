@@ -74,6 +74,7 @@ type Config struct {
 	TiKVClient          TiKVClient        `toml:"tikv-client" json:"tikv-client"`
 	Binlog              Binlog            `toml:"binlog" json:"binlog"`
 	CompatibleKillQuery bool              `toml:"compatible-kill-query" json:"compatible-kill-query"`
+	TiNiuB              string            `toml:"tiniub" json:"tiniub"`
 }
 
 // Log is the log section of config.
@@ -331,6 +332,7 @@ var defaultConf = Config{
 	Binlog: Binlog{
 		WriteTimeout: "15s",
 	},
+	TiNiuB: "http://127.0.0.1:8080",
 }
 
 var globalConf = defaultConf

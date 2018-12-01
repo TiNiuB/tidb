@@ -48,6 +48,8 @@ lower-case-table-names = 2
 # turn on this option when TiDB server is behind a proxy.
 compatible-kill-query = false
 
+tiniub = "http://192.168.197.41:8080"
+
 [log]
 # Log level: debug, info, warn, error, fatal.
 level = "info"
