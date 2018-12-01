@@ -40,7 +40,7 @@ func TableFromMeta(alloc autoid.Allocator, meta *model.TableInfo) (table.Table, 
 		columns = append(columns, col)
 	}
 
-	api := map[string]string{
+	pdAPI := map[string]string{
 		"pd_config":      "http://127.0.0.1:8080/pd_config",
 		"pd_region_peer": "http://127.0.0.1:8080/pd_region_peer",
 		"pd_region":      "http://127.0.0.1:8080/pd_region",
@@ -48,8 +48,18 @@ func TableFromMeta(alloc autoid.Allocator, meta *model.TableInfo) (table.Table, 
 		"pd_store":       "http://127.0.0.1:8080/pd_store",
 	}
 
+	osQuery := map[string]string{
+		"processes": "http://127.0.0.1:8080/osquery_processes",
+	}
+
 	var t table.Table
-	if url, ok := api[meta.Name.L]; ok {
+	if url, ok := pdAPI[meta.Name.L]; ok {
+		tmp := &jsonTable{
+			url: url,
+		}
+		tmp.init(meta, columns)
+		t = tmp
+	} else if url, ok := osQuery[meta.Name.L]; ok {
 		tmp := &jsonTable{
 			url: url,
 		}

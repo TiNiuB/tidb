@@ -8,6 +8,7 @@ import (
 	"github.com/pingcap/errors"
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/sessionctx"
+	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/table"
 	"github.com/pingcap/tidb/types"
 )
@@ -51,22 +52,45 @@ func (vt *jsonTable) getRows(ctx sessionctx.Context, cols []*table.Column) (full
 
 	var fromRows []map[string]interface{}
 	dec := json.NewDecoder(resp.Body)
-	dec.Decode(&fromRows)
+	err = dec.Decode(&fromRows)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
 
 	toRows := make([][]types.Datum, 0, len(fromRows))
 	for _, row := range fromRows {
-		toRows = vt.decodeOneRow(row, toRows)
+		toRows = vt.decodeOneRow(ctx.GetSessionVars().StmtCtx, row, toRows, cols)
 	}
 	return toRows, nil
 }
 
-func (vt *jsonTable) decodeOneRow(from map[string]interface{}, toRows [][]types.Datum) [][]types.Datum {
+func (vt *jsonTable) decodeOneRow(sc *stmtctx.StatementContext, from map[string]interface{}, toRows [][]types.Datum, cols []*table.Column) [][]types.Datum {
+	fmt.Println(" ============================= decode one row")
 	colInfos := vt.meta.Columns
 	to := make([]types.Datum, len(colInfos))
 	for i := 0; i < len(colInfos); i++ {
+
+		if cols[i].Name.L != colInfos[i].Name.L {
+			fmt.Printf("第 %d 列出， %s %s executor 的跟实际的不一致？\n", i, cols[i].Name.L, colInfos[i].Name.L)
+		}
+
 		key := colInfos[i].Name.L
 		if val, ok := from[key]; ok {
 			to[i] = types.NewDatum(val)
+			// fmt.Printf("填充列，key  = %s , value = %s \n", key, val)
+
+			var tmp types.Datum
+			var err error
+			tmp, err = to[i].ConvertTo(sc, &cols[i].FieldType)
+
+			if err == nil {
+				to[i] = tmp
+			} else {
+				fmt.Println("数据类型对不上，", to[i])
+			}
+
+		} else {
+			fmt.Println("没有填充的 json 里面有,schema 里面没有", key)
 		}
 	}
 	toRows = append(toRows, to)
